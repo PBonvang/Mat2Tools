@@ -166,7 +166,7 @@ routhHurwitzMatrices := proc(A::{matrix, Matrix})
     end if;
     
     for i from 1 by 1 to rd-2 do 
-        routhHurwitzMatrix([c]);
+        routhHurwitzMatrix([c[i:numelemns([c])]]);
     end do;
 
 end proc:
