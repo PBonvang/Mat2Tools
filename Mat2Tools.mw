@@ -96,9 +96,10 @@
 <Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal">Mat2Tools := module()
 description &quot;Procedures and guides associated with the Advanced Engineering Mathematics 2 (DTU 01037)&quot;;
 option package;
-export 
-   periodPlot, routhHurwitzMatrices;
+export periodPlot, routhHurwitzMatrices, FourierCoefficients, FourierRow;
+
 local routhHurwitzMatrix;
+
 periodPlot := proc(f::{procedure}, {limit::range := -Pi..Pi, period := 2*Pi, num_periods::posint := 3})
     local p, k, ub, lb;
     if(type(num_periods,even)) then
@@ -112,6 +113,7 @@ periodPlot := proc(f::{procedure}, {limit::range := -Pi..Pi, period := 2*Pi, num
     p := plot(f(x),x=limit,discont=true):
     plots[display]([seq(plottools[translate](p, period*k, 0), k = -lb .. ub)], scaling = constrained);
 end proc:
+
 routhHurwitzMatrix := proc(coefficients := {list})
     local Dl,s,i,j, d, c;
     c := coefficients;
@@ -166,14 +168,60 @@ routhHurwitzMatrices := proc(A::{matrix, Matrix})
     end if;
     
     for i from 1 by 1 to rd-2 do 
-        routhHurwitzMatrix([c[i:numelemns([c])]]);
+        routhHurwitzMatrix([c[i..numelemns([c])]]);
     end do;
 
 end proc:
 
+FourierCoefficients := proc(f::{procedure}, {T := 2*Pi, odd::{boolean} := false, even::{boolean} := false, integralInterval::{range} := 0..T})
+local a, b, c, var, w, i;
+var := op(1, eval(f));
+w := 2*Pi/T;
+
+if (numelems([var]) &lt;&gt; 1) then
+    return &quot;f can only have one independent variable.&quot;
+end if;
+
+if (add(seq(abs(op(integralInterval)[i]), i=1..2)) &lt;&gt; T) then
+    print(&quot;The integral interval has to have the same length as [0;T]&quot;);
+    return;
+end if;
+
+if (even) then
+a := unapply(4/T * int(f(var)*cos(n*w*var),var=integralInterval),n);
+b := unapply(0,n);
+
+elif(odd) then
+a := unapply(0,n);
+b := unapply(4/T * int(f(var)*sin(n*w*var),var=integralInterval),n);
+
+else
+a := unapply(2/T * int(f(var)*cos(n*w*var),x=integralInterval),n);
+b := unapply(2/T * int(f(var)*sin(n*w*var),x=integralInterval),n);
+
+end if;
+c := unapply(1/T * int(f(var)*exp(I*n*w*var),var=integralInterval),n);
+
+return a, b, c;
+end proc:
+
+FourierRow := proc(f::{procedure}, {T := 2*Pi, odd::{boolean} := false, even::{boolean} := false, integralInterval::{range} := 0..T, complex::{boolean} := false})
+local a, b, c, var, w;
+var := op(1, eval(f));
+w := 2*Pi/T;
+
+a, b, c := FourierCoefficients(f, T=T,odd=odd,even=even,integralInterval=integralInterval,complex=complex);
+
+if(complex) then
+    return unapply(sum(c(n)*exp(i*n*w*var),n=-infinity..infinity),var);
+end if;
+
+return unapply(1/2*a(0)+sum(a(n)*cos(n*w*var) + b(n)*sin(n*w*var),n=1..infinity),var);
+
+end proc:
 end module;</Text-field>
 </Input>
-<Output><Text-field style="2D Output" layout="Maple Output"><Equation executable="false" style="2D Output" display="LUklbXJvd0c2Iy9JK21vZHVsZW5hbWVHNiJJLFR5cGVzZXR0aW5nR0koX3N5c2xpYkdGJzYmLUkjbWlHRiQ2JVEqTWF0MVRvb2xzRicvJSdpdGFsaWNHUSV0cnVlRicvJSxtYXRodmFyaWFudEdRJ2l0YWxpY0YnLUkjbW9HRiQ2LVEpJkFzc2lnbjtGJy9GM1Enbm9ybWFsRicvJSZmZW5jZUdRJmZhbHNlRicvJSpzZXBhcmF0b3JHRj0vJSlzdHJldGNoeUdGPS8lKnN5bW1ldHJpY0dGPS8lKGxhcmdlb3BHRj0vJS5tb3ZhYmxlbGltaXRzR0Y9LyUnYWNjZW50R0Y9LyUnbHNwYWNlR1EsMC4yNzc3Nzc4ZW1GJy8lJ3JzcGFjZUdGTC1GIzYrLUY2Ni9RJ21vZHVsZUYnLyUlYm9sZEdGMS9GM1ElYm9sZEYnLyUrZm9udHdlaWdodEdGV0Y7Rj5GQEZCRkRGRkZIL0ZLUSYwLjBlbUYnL0ZORmVuLUkobWZlbmNlZEdGJDYkLUYjNiYtRiw2JVEhRidGL0YyLyUrZm9yZWdyb3VuZEdRKFswLDAsMF1GJy8lKXJlYWRvbmx5R0Y9RjlGOS1JJ21zcGFjZUdGJDYmLyUnaGVpZ2h0R1EmMC4wZXhGJy8lJndpZHRoR1EmMC41ZW1GJy8lJmRlcHRoR0Zpby8lKmxpbmVicmVha0dRMWZpcnN0cHJvY25ld2xpbmVGJy1GNjYtUSQuLi5GJ0Y5RjtGPkZARkJGREZGRkgvRktRLDAuMjIyMjIyMmVtRidGZm4tRmVvNiZGZ29Gam9GXXAvRmBwUTZkZWNyZWFzZWluZGVudG5ld2xpbmVGJy1GNjYvUStlbmR+bW9kdWxlRidGVEZWRlhGO0Y+RkBGQkZERkZGSEZaRmZuRl9vRmJvRjlGOQ==">LV9JLFR5cGVzZXR0aW5nRzYkJSpwcm90ZWN0ZWRHSShfc3lzbGliRzYiSSxtcHJpbnRzbGFzaEdGKDYkNyM+SSpNYXQxVG9vbHNHRihgNjpJJGRvdEc2JEYmL0knX2xvY2FsR0YmSTBfbjE4OTE1MTIxNjMwNzJHRihJJXByaWtHNiRGJi9GM0kwX24xODkxNTEyMTYzMDA4R0YoSSZjcm9zc0c2JEYmL0YzSTBfbjE4OTE1MTIxNjI5NzZHRihJJmtyeWRzRzYkRiYvRjNJMF9uMTg5MTUxMjE2Mjk0NEdGKEkkdm9wRzYkRiYvRjNJMF9uMTg5MTUxMjE2MjkxMkdGKEkuaW50ZXJ2YWxzb2x2ZUc2JEYmL0YzSTBfbjE4OTE1MTI5NzY3MjBHRihJKXBhcmFwbG90RzYkRiYvRjNJMF9uMTg5MTUxMjk3NjY4MEdGKEklZ3JhZEc2JEYmL0YzSTBfbjE4OTE1MTIxNjI4ODBHRihJJXNyaHNHNiRGJi9GM0kwX24xODkxNTEyMTYyODQ4R0YoSSVzbGhzRzYkRiYvRjNJMF9uMTg5MTUxMjE2MjgxNkdGKEknY29uZGdmRzYkRiYvRjNJMF9uMTg5MTUxMjE2Mjc4NEdGKEkldmxlbkc2JEYmL0YzSTBfbjE4OTE1MTIxNjI3NTJHRihJJGRpdkc2JEYmL0YzSTBfbjE4OTE1MTIxNjI3MjBHRihJJ2phY29iaUc2JEYmL0YzSTBfbjE4OTE1MTIxNjI2ODhHRihJJWN1cmxHNiRGJi9GM0kwX24xODkxNTEyMTYyNjU2R0YoSSRyb3RHNiRGJi9GM0kwX24xODkxNTEyMTYyNjI0R0YoSSVwaW50RzYkRiYvRjNJMF9uMTg5MTUxMjE2MjU5MkdGKEklZmx1eEc2JEYmL0YzSTBfbjE4OTE1MTIxNjI1NjBHRihJJ3Zzb2x2ZUc2JEYmL0YzSTBfbjE4OTE1MTIxNjI1MjhHRihJJXRpbnRHNiRGJi9GM0kwX24xODkxNTEyMTYyNDk2R0YoSSRjb21HNiRGJi9GM0kwX24xODkxNTEyMTYyNDY0R0YoSSZwbm9ybUc2JEYmL0YzSTBfbjE4OTE1MTIxNjI0MzJHRihJKXBsb3Rub3JtRzYkRiYvRjNJMF9uMTg5MTUxMjk3NjY0MEdGKEkoaGVzc2lhbkc2JEYmL0YzSTBfbjE4OTE1MTIxNjI0MDBHRihJMF9tMTg5MTUxMjE2MzEwNEdGKDYjSTVjb2x1bW5NYXRyaXhUb1ZlY3Rvckc2Iy9GM0kwX24xODkxNTExNzE3OTM2R0YoNyNGLg==</Equation></Text-field>
+<Output><Text-field style="2D Output" layout="Maple Output"><Equation executable="false" style="2D Output" display="LUklbXJvd0c2Iy9JK21vZHVsZW5hbWVHNiJJLFR5cGVzZXR0aW5nR0koX3N5c2xpYkdGJzYmLUkjbWlHRiQ2JVEqTWF0MlRvb2xzRicvJSdpdGFsaWNHUSV0cnVlRicvJSxtYXRodmFyaWFudEdRJ2l0YWxpY0YnLUkjbW9HRiQ2LVEpJkFzc2lnbjtGJy9GM1Enbm9ybWFsRicvJSZmZW5jZUdRJmZhbHNlRicvJSpzZXBhcmF0b3JHRj0vJSlzdHJldGNoeUdGPS8lKnN5bW1ldHJpY0dGPS8lKGxhcmdlb3BHRj0vJS5tb3ZhYmxlbGltaXRzR0Y9LyUnYWNjZW50R0Y9LyUnbHNwYWNlR1EsMC4yNzc3Nzc4ZW1GJy8lJ3JzcGFjZUdGTC1GIzYrLUY2Ni9RJ21vZHVsZUYnLyUlYm9sZEdGMS9GM1ElYm9sZEYnLyUrZm9udHdlaWdodEdGV0Y7Rj5GQEZCRkRGRkZIL0ZLUSYwLjBlbUYnL0ZORmVuLUkobWZlbmNlZEdGJDYkLUYjNiYtRiw2JVEhRidGL0YyLyUrZm9yZWdyb3VuZEdRKFswLDAsMF1GJy8lKXJlYWRvbmx5R0Y9RjlGOS1JJ21zcGFjZUdGJDYmLyUnaGVpZ2h0R1EmMC4wZXhGJy8lJndpZHRoR1EmMC41ZW1GJy8lJmRlcHRoR0Zpby8lKmxpbmVicmVha0dRMWZpcnN0cHJvY25ld2xpbmVGJy1GNjYtUSQuLi5GJ0Y5RjtGPkZARkJGREZGRkgvRktRLDAuMjIyMjIyMmVtRidGZm4tRmVvNiZGZ29Gam9GXXAvRmBwUTZkZWNyZWFzZWluZGVudG5ld2xpbmVGJy1GNjYvUStlbmR+bW9kdWxlRidGVEZWRlhGO0Y+RkBGQkZERkZGSEZaRmZuRl9vRmJvRjlGOQ==">LV9JLFR5cGVzZXR0aW5nRzYkJSpwcm90ZWN0ZWRHSShfc3lzbGliRzYiSSxtcHJpbnRzbGFzaEdGKDYkNyM+SSpNYXQyVG9vbHNHRihgNiZJK3BlcmlvZFBsb3RHNiRGJi9JJ19sb2NhbEdGJkkwX24yNjUzOTE2MDcwMzY4R0YoSTVyb3V0aEh1cndpdHpNYXRyaWNlc0c2JEYmL0YzSTBfbjI2NTM5MTUyNDIzMzZHRihJNEZvdXJpZXJDb2VmZmljaWVudHNHNiRGJi9GM0kwX24yNjUzOTE1MjQyMjg4R0YoSStGb3VyaWVyUm93RzYkRiYvRjNJMF9uMjY1MzkxNjA3MDMyOEdGKEkwX20yNjUzOTE1ODI0MDAwR0YoNiNJM3JvdXRoSHVyd2l0ek1hdHJpeEc2Iy9GM0kwX24yNjUzOTE1MjQyMjQwR0YoNyNGLg==</Equation></Text-field>
 </Output>
 </Group>
 <Group labelreference="L4" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
