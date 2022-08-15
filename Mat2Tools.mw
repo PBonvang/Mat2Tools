@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Worksheet>
-<Version major="2022" minor="0"/>
+<Version major="2022" minor="1"/>
 <Label-Scheme value="2" prefix=""/>
 <View-Properties presentation="false" autoexpanding_sections="true" UserProfileName="Maple Default Profile" NumericFormat-ApplyInteger="true" NumericFormat-ApplyRational="true" NumericFormat-ApplyExponent="false" editable="true">
 </View-Properties>
@@ -188,19 +188,19 @@ if (add(seq(abs(op(integralInterval)[i]), i=1..2)) &lt;&gt; T) then
 end if;
 
 if (even) then
-a := unapply(4/T * int(f(var)*cos(n*w*var),var=0..T/2),n);
-b := unapply(0,n);
+a := n -&gt; 4/T * int(f(var)*cos(n*w*var),var=0..T/2);
+b := n -&gt; 0;
 
 elif(odd) then
-a := unapply(0,n);
-b := unapply(4/T * int(f(var)*sin(n*w*var),var=0..T/2),n);
+a := n -&gt; 0;
+b := n -&gt; 4/T * int(f(var)*sin(n*w*var),var=0..T/2);
 
 else
-a := unapply(2/T * int(f(var)*cos(n*w*var),x=integralInterval),n);
-b := unapply(2/T * int(f(var)*sin(n*w*var),x=integralInterval),n);
+a := n -&gt; 2/T * int(f(var)*cos(n*w*var),x=integralInterval);
+b := n -&gt; 2/T * int(f(var)*sin(n*w*var),x=integralInterval);
 
 end if;
-c := unapply(1/T * int(f(var)*exp(-I*n*w*var),var=integralInterval),n);
+c := n -&gt; 1/T * int(f(var)*exp(-I*n*w*var),var=integralInterval);
 
 return a, b, c;
 end proc:
@@ -246,7 +246,7 @@ end proc;
 
 end module;</Text-field>
 </Input>
-<Output><Text-field style="2D Output" layout="Maple Output"><Equation executable="false" style="2D Output" display="LUklbXJvd0c2Iy9JK21vZHVsZW5hbWVHNiJJLFR5cGVzZXR0aW5nR0koX3N5c2xpYkdGJzYmLUkjbWlHRiQ2JVEqTWF0MlRvb2xzRicvJSdpdGFsaWNHUSV0cnVlRicvJSxtYXRodmFyaWFudEdRJ2l0YWxpY0YnLUkjbW9HRiQ2LVEpJkFzc2lnbjtGJy9GM1Enbm9ybWFsRicvJSZmZW5jZUdRJmZhbHNlRicvJSpzZXBhcmF0b3JHRj0vJSlzdHJldGNoeUdGPS8lKnN5bW1ldHJpY0dGPS8lKGxhcmdlb3BHRj0vJS5tb3ZhYmxlbGltaXRzR0Y9LyUnYWNjZW50R0Y9LyUnbHNwYWNlR1EsMC4yNzc3Nzc4ZW1GJy8lJ3JzcGFjZUdGTC1GIzYrLUY2Ni9RJ21vZHVsZUYnLyUlYm9sZEdGMS9GM1ElYm9sZEYnLyUrZm9udHdlaWdodEdGV0Y7Rj5GQEZCRkRGRkZIL0ZLUSYwLjBlbUYnL0ZORmVuLUkobWZlbmNlZEdGJDYkLUYjNiYtRiw2JVEhRidGL0YyLyUrZm9yZWdyb3VuZEdRKFswLDAsMF1GJy8lKXJlYWRvbmx5R0Y9RjlGOS1JJ21zcGFjZUdGJDYmLyUnaGVpZ2h0R1EmMC4wZXhGJy8lJndpZHRoR1EmMC41ZW1GJy8lJmRlcHRoR0Zpby8lKmxpbmVicmVha0dRMWZpcnN0cHJvY25ld2xpbmVGJy1GNjYtUSQuLi5GJ0Y5RjtGPkZARkJGREZGRkgvRktRLDAuMjIyMjIyMmVtRidGZm4tRmVvNiZGZ29Gam9GXXAvRmBwUTZkZWNyZWFzZWluZGVudG5ld2xpbmVGJy1GNjYvUStlbmR+bW9kdWxlRidGVEZWRlhGO0Y+RkBGQkZERkZGSEZaRmZuRl9vRmJvRjlGOQ==">LV9JLFR5cGVzZXR0aW5nRzYkJSpwcm90ZWN0ZWRHSShfc3lzbGliRzYiSSxtcHJpbnRzbGFzaEdGKDYkNyM+SSpNYXQyVG9vbHNHRihgNihJK3BlcmlvZFBsb3RHNiRGJi9JJ19sb2NhbEdGJkkwX24yMjg1Njg5MzYxMjY0R0YoSTVyb3V0aEh1cndpdHpNYXRyaWNlc0c2JEYmL0YzSTBfbjIyODU2MTE0MTE2MTZHRihJNEZvdXJpZXJDb2VmZmljaWVudHNHNiRGJi9GM0kwX24yMjg1NjExNDExNTY4R0YoSS5Gb3VyaWVyU2VyaWVzRzYkRiYvRjNJMF9uMjI4NTY4OTM2MTIyNEdGKEktcGVyaW9kaWNGdW5jRzYkRiYvRjNJMF9uMjI4NTY4OTM2MTE4NEdGKEkyY29udmVyZ2VuY2VSYWRpdXNHNiRGJi9GM0kwX24yMjg1NjExNDExNTIwR0YoSTBfbTIyODU2ODkyODE2NjRHRig2I0kzcm91dGhIdXJ3aXR6TWF0cml4RzYjL0YzSTBfbjIyODU2MTE0MTE0NzJHRig3I0Yu</Equation></Text-field>
+<Output><Text-field style="2D Output" layout="Maple Output"><Equation executable="false" style="2D Output" display="LUklbXJvd0c2Iy9JK21vZHVsZW5hbWVHNiJJLFR5cGVzZXR0aW5nR0koX3N5c2xpYkdGJzYmLUkjbWlHRiQ2JVEqTWF0MlRvb2xzRicvJSdpdGFsaWNHUSV0cnVlRicvJSxtYXRodmFyaWFudEdRJ2l0YWxpY0YnLUkjbW9HRiQ2LVEpJkFzc2lnbjtGJy9GM1Enbm9ybWFsRicvJSZmZW5jZUdRJmZhbHNlRicvJSpzZXBhcmF0b3JHRj0vJSlzdHJldGNoeUdGPS8lKnN5bW1ldHJpY0dGPS8lKGxhcmdlb3BHRj0vJS5tb3ZhYmxlbGltaXRzR0Y9LyUnYWNjZW50R0Y9LyUnbHNwYWNlR1EsMC4yNzc3Nzc4ZW1GJy8lJ3JzcGFjZUdGTC1GIzYrLUY2Ni9RJ21vZHVsZUYnLyUlYm9sZEdGMS9GM1ElYm9sZEYnLyUrZm9udHdlaWdodEdGV0Y7Rj5GQEZCRkRGRkZIL0ZLUSYwLjBlbUYnL0ZORmVuLUkobWZlbmNlZEdGJDYkLUYjNiYtRiw2JVEhRidGL0YyLyUrZm9yZWdyb3VuZEdRKFswLDAsMF1GJy8lKXJlYWRvbmx5R0Y9RjlGOS1JJ21zcGFjZUdGJDYmLyUnaGVpZ2h0R1EmMC4wZXhGJy8lJndpZHRoR1EmMC41ZW1GJy8lJmRlcHRoR0Zpby8lKmxpbmVicmVha0dRMWZpcnN0cHJvY25ld2xpbmVGJy1GNjYtUSQuLi5GJ0Y5RjtGPkZARkJGREZGRkgvRktRLDAuMjIyMjIyMmVtRidGZm4tRmVvNiZGZ29Gam9GXXAvRmBwUTZkZWNyZWFzZWluZGVudG5ld2xpbmVGJy1GNjYvUStlbmR+bW9kdWxlRidGVEZWRlhGO0Y+RkBGQkZERkZGSEZaRmZuRl9vRmJvRjlGOQ==">LV9JLFR5cGVzZXR0aW5nRzYkJSpwcm90ZWN0ZWRHSShfc3lzbGliRzYiSSxtcHJpbnRzbGFzaEdGKDYkNyM+SSpNYXQyVG9vbHNHRihgNidJLXBlcmlvZGljRnVuY0c2JEYmL0knX2xvY2FsR0YmSTBfbjI5MTgwNzczOTE5NjhHRihJK3BlcmlvZFBsb3RHNiRGJi9GM0kwX24yOTE4MDc3MzkxOTI4R0YoSTVyb3V0aEh1cndpdHpNYXRyaWNlc0c2JEYmL0YzSTBfbjI5MTgwNzc5MDkwNTZHRihJNEZvdXJpZXJDb2VmZmljaWVudHNHNiRGJi9GM0kwX24yOTE4MDc3OTA5MDA4R0YoSStGb3VyaWVyUm93RzYkRiYvRjNJMF9uMjkxODA3NzM5MTg4OEdGKEkwX20yOTE4MDc3MzI3MDQwR0YoNiNJM3JvdXRoSHVyd2l0ek1hdHJpeEc2Iy9GM0kwX24yOTE4MDc3OTA4OTYwR0YoNyNGLg==</Equation></Text-field>
 </Output>
 </Group>
 <Group labelreference="L4" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
