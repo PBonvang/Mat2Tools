@@ -96,7 +96,7 @@
 <Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal">Mat2Tools := module()
 description &quot;Procedures and guides associated with the Advanced Engineering Mathematics 2 (DTU 01037)&quot;;
 option package;
-export periodicFunc, periodPlot, routhHurwitzMatrices, FourierCoefficients, FourierRow;
+export periodPlot, routhHurwitzMatrices, FourierCoefficients, FourierSeries, periodicFunc, convergenceRadius;
 
 local routhHurwitzMatrix;
 
@@ -205,7 +205,7 @@ c := unapply(1/T * int(f(var)*exp(-I*n*w*var),var=integralInterval),n);
 return a, b, c;
 end proc:
 
-FourierRow := proc(f::{procedure}, {T := 2*Pi, odd::{boolean} := false, even::{boolean} := false, integralInterval::{range} := 0..T, complex::{boolean} := false})
+FourierSeries := proc(f::{procedure}, {T := 2*Pi, odd::{boolean} := false, even::{boolean} := false, integralInterval::{range} := 0..T, complex::{boolean} := false})
 local a, b, c, var, w;
 var := op(1, eval(f));
 w := 2*Pi/T;
@@ -228,9 +228,25 @@ period := h-l;
 
 return unapply(f(x - floor((x-l)/period)*period),x)
 end proc:
+
+convergenceRadius := proc(a::{procedure})
+  local an, lim;
+
+  an := abs(a(n+1)/a(n)):
+  print('abs(a(n+1)/a(n))' = simplify(an));
+
+  lim := limit(an,n=infinity):
+  print('limit(abs(a(n+1)/a(n)),n=infinity)' = lim);
+  print(lim &lt; 1);
+
+  solve(
+    limit(abs(a(n+1)/a(n)),n=infinity) &lt; 1
+  );
+end proc;
+
 end module;</Text-field>
 </Input>
-<Output><Text-field style="2D Output" layout="Maple Output"><Equation executable="false" style="2D Output" display="LUklbXJvd0c2Iy9JK21vZHVsZW5hbWVHNiJJLFR5cGVzZXR0aW5nR0koX3N5c2xpYkdGJzYmLUkjbWlHRiQ2JVEqTWF0MlRvb2xzRicvJSdpdGFsaWNHUSV0cnVlRicvJSxtYXRodmFyaWFudEdRJ2l0YWxpY0YnLUkjbW9HRiQ2LVEpJkFzc2lnbjtGJy9GM1Enbm9ybWFsRicvJSZmZW5jZUdRJmZhbHNlRicvJSpzZXBhcmF0b3JHRj0vJSlzdHJldGNoeUdGPS8lKnN5bW1ldHJpY0dGPS8lKGxhcmdlb3BHRj0vJS5tb3ZhYmxlbGltaXRzR0Y9LyUnYWNjZW50R0Y9LyUnbHNwYWNlR1EsMC4yNzc3Nzc4ZW1GJy8lJ3JzcGFjZUdGTC1GIzYrLUY2Ni9RJ21vZHVsZUYnLyUlYm9sZEdGMS9GM1ElYm9sZEYnLyUrZm9udHdlaWdodEdGV0Y7Rj5GQEZCRkRGRkZIL0ZLUSYwLjBlbUYnL0ZORmVuLUkobWZlbmNlZEdGJDYkLUYjNiYtRiw2JVEhRidGL0YyLyUrZm9yZWdyb3VuZEdRKFswLDAsMF1GJy8lKXJlYWRvbmx5R0Y9RjlGOS1JJ21zcGFjZUdGJDYmLyUnaGVpZ2h0R1EmMC4wZXhGJy8lJndpZHRoR1EmMC41ZW1GJy8lJmRlcHRoR0Zpby8lKmxpbmVicmVha0dRMWZpcnN0cHJvY25ld2xpbmVGJy1GNjYtUSQuLi5GJ0Y5RjtGPkZARkJGREZGRkgvRktRLDAuMjIyMjIyMmVtRidGZm4tRmVvNiZGZ29Gam9GXXAvRmBwUTZkZWNyZWFzZWluZGVudG5ld2xpbmVGJy1GNjYvUStlbmR+bW9kdWxlRidGVEZWRlhGO0Y+RkBGQkZERkZGSEZaRmZuRl9vRmJvRjlGOQ==">LV9JLFR5cGVzZXR0aW5nRzYkJSpwcm90ZWN0ZWRHSShfc3lzbGliRzYiSSxtcHJpbnRzbGFzaEdGKDYkNyM+SSpNYXQyVG9vbHNHRihgNidJLXBlcmlvZGljRnVuY0c2JEYmL0knX2xvY2FsR0YmSTBfbjI4NTgyMDY4NDk5NzZHRihJK3BlcmlvZFBsb3RHNiRGJi9GM0kwX24yODU4MjA2ODQ5OTM2R0YoSTVyb3V0aEh1cndpdHpNYXRyaWNlc0c2JEYmL0YzSTBfbjI4NTgyMDc0MDcxNTJHRihJNEZvdXJpZXJDb2VmZmljaWVudHNHNiRGJi9GM0kwX24yODU4MjA3NDA3MTA0R0YoSStGb3VyaWVyUm93RzYkRiYvRjNJMF9uMjg1ODIwNjg0OTg5NkdGKEkwX20yODU4MjA2Nzc5NDg4R0YoNiNJM3JvdXRoSHVyd2l0ek1hdHJpeEc2Iy9GM0kwX24yODU4MjA3NDA3MDU2R0YoNyNGLg==</Equation></Text-field>
+<Output><Text-field style="2D Output" layout="Maple Output"><Equation executable="false" style="2D Output" display="LUklbXJvd0c2Iy9JK21vZHVsZW5hbWVHNiJJLFR5cGVzZXR0aW5nR0koX3N5c2xpYkdGJzYmLUkjbWlHRiQ2JVEqTWF0MlRvb2xzRicvJSdpdGFsaWNHUSV0cnVlRicvJSxtYXRodmFyaWFudEdRJ2l0YWxpY0YnLUkjbW9HRiQ2LVEpJkFzc2lnbjtGJy9GM1Enbm9ybWFsRicvJSZmZW5jZUdRJmZhbHNlRicvJSpzZXBhcmF0b3JHRj0vJSlzdHJldGNoeUdGPS8lKnN5bW1ldHJpY0dGPS8lKGxhcmdlb3BHRj0vJS5tb3ZhYmxlbGltaXRzR0Y9LyUnYWNjZW50R0Y9LyUnbHNwYWNlR1EsMC4yNzc3Nzc4ZW1GJy8lJ3JzcGFjZUdGTC1GIzYrLUY2Ni9RJ21vZHVsZUYnLyUlYm9sZEdGMS9GM1ElYm9sZEYnLyUrZm9udHdlaWdodEdGV0Y7Rj5GQEZCRkRGRkZIL0ZLUSYwLjBlbUYnL0ZORmVuLUkobWZlbmNlZEdGJDYkLUYjNiYtRiw2JVEhRidGL0YyLyUrZm9yZWdyb3VuZEdRKFswLDAsMF1GJy8lKXJlYWRvbmx5R0Y9RjlGOS1JJ21zcGFjZUdGJDYmLyUnaGVpZ2h0R1EmMC4wZXhGJy8lJndpZHRoR1EmMC41ZW1GJy8lJmRlcHRoR0Zpby8lKmxpbmVicmVha0dRMWZpcnN0cHJvY25ld2xpbmVGJy1GNjYtUSQuLi5GJ0Y5RjtGPkZARkJGREZGRkgvRktRLDAuMjIyMjIyMmVtRidGZm4tRmVvNiZGZ29Gam9GXXAvRmBwUTZkZWNyZWFzZWluZGVudG5ld2xpbmVGJy1GNjYvUStlbmR+bW9kdWxlRidGVEZWRlhGO0Y+RkBGQkZERkZGSEZaRmZuRl9vRmJvRjlGOQ==">LV9JLFR5cGVzZXR0aW5nRzYkJSpwcm90ZWN0ZWRHSShfc3lzbGliRzYiSSxtcHJpbnRzbGFzaEdGKDYkNyM+SSpNYXQyVG9vbHNHRihgNihJK3BlcmlvZFBsb3RHNiRGJi9JJ19sb2NhbEdGJkkwX24yMjg1Njg5MzYxMjY0R0YoSTVyb3V0aEh1cndpdHpNYXRyaWNlc0c2JEYmL0YzSTBfbjIyODU2MTE0MTE2MTZHRihJNEZvdXJpZXJDb2VmZmljaWVudHNHNiRGJi9GM0kwX24yMjg1NjExNDExNTY4R0YoSS5Gb3VyaWVyU2VyaWVzRzYkRiYvRjNJMF9uMjI4NTY4OTM2MTIyNEdGKEktcGVyaW9kaWNGdW5jRzYkRiYvRjNJMF9uMjI4NTY4OTM2MTE4NEdGKEkyY29udmVyZ2VuY2VSYWRpdXNHNiRGJi9GM0kwX24yMjg1NjExNDExNTIwR0YoSTBfbTIyODU2ODkyODE2NjRHRig2I0kzcm91dGhIdXJ3aXR6TWF0cml4RzYjL0YzSTBfbjIyODU2MTE0MTE0NzJHRig3I0Yu</Equation></Text-field>
 </Output>
 </Group>
 <Group labelreference="L4" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
