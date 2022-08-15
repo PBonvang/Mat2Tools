@@ -188,19 +188,19 @@ if (add(seq(abs(op(integralInterval)[i]), i=1..2)) &lt;&gt; T) then
 end if;
 
 if (even) then
-a := unapply(4/T * int(f(var)*cos(n*w*var),var=0..T/2),n);
-b := unapply(0,n);
+a := n -&gt; 4/T * int(f(var)*cos(n*w*var),var=0..T/2);
+b := n -&gt; 0;
 
 elif(odd) then
-a := unapply(0,n);
-b := unapply(4/T * int(f(var)*sin(n*w*var),var=0..T/2),n);
+a := n -&gt; 0;
+b := n -&gt; 4/T * int(f(var)*sin(n*w*var),var=0..T/2);
 
 else
-a := unapply(2/T * int(f(var)*cos(n*w*var),x=integralInterval),n);
-b := unapply(2/T * int(f(var)*sin(n*w*var),x=integralInterval),n);
+a := n -&gt; 2/T * int(f(var)*cos(n*w*var),x=integralInterval);
+b := n -&gt; 2/T * int(f(var)*sin(n*w*var),x=integralInterval);
 
 end if;
-c := unapply(1/T * int(f(var)*exp(-I*n*w*var),var=integralInterval),n);
+c := n -&gt; 1/T * int(f(var)*exp(-I*n*w*var),var=integralInterval);
 
 return a, b, c;
 end proc:
