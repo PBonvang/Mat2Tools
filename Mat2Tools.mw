@@ -96,7 +96,7 @@
 <Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal">Mat2Tools := module()
 description &quot;Procedures and guides associated with the Advanced Engineering Mathematics 2 (DTU 01037)&quot;;
 option package;
-export periodPlot, routhHurwitzMatrices, FourierCoefficients, FourierSeries, periodicFunc, convergenceRadius;
+export periodPlot, routhHurwitzMatrices, FourierCoefficients, FourierSeries, periodicFunc, convergenceRadius, dtransform;
 
 local routhHurwitzMatrix;
 
@@ -244,9 +244,42 @@ convergenceRadius := proc(a::{procedure})
   );
 end proc;
 
+dtransform := proc(eq)
+local leq, n, c, j, i, test_eq, coeff_row, A, b, d;
+leq := lhs(eq):
+
+n := PDEtools[difforder](leq):
+c := PDEtools[dcoeffs](leq, y(t)):
+
+
+coeff_row := []:
+test_eq := leq - c[1]*diff(y(t),t$n):
+
+j := 2:
+
+for i from n-1 by -1 to 1 do
+if(has(test_eq,diff(y(t),t$i))) then
+    coeff_row := [op(coeff_row),-c[j]/c[1]]:
+    test_eq := test_eq - c[j]*diff(y(t),t$i):
+    j += 1:
+else
+coeff_row := [op(coeff_row),0]:
+
+end if;
+end do;
+if(has(test_eq,y(t))) then
+    coeff_row := [op(coeff_row),-c[j]/c[1]]:
+end if;
+
+A := &lt;&lt;&lt;seq(0,i=1..n-1)&gt;|LinearAlgebra[IdentityMatrix](n-1)&gt;;Matrix(coeff_row)&gt;:
+b := &lt;seq(0,i=1..n-1),1/c[1]&gt;;
+d := &lt;1,seq(0,i=1..n-1)&gt;;
+return A, b, d;
+end proc;
+
 end module;</Text-field>
 </Input>
-<Output><Text-field style="2D Output" layout="Maple Output"><Equation executable="false" style="2D Output" display="LUklbXJvd0c2Iy9JK21vZHVsZW5hbWVHNiJJLFR5cGVzZXR0aW5nR0koX3N5c2xpYkdGJzYmLUkjbWlHRiQ2JVEqTWF0MlRvb2xzRicvJSdpdGFsaWNHUSV0cnVlRicvJSxtYXRodmFyaWFudEdRJ2l0YWxpY0YnLUkjbW9HRiQ2LVEpJkFzc2lnbjtGJy9GM1Enbm9ybWFsRicvJSZmZW5jZUdRJmZhbHNlRicvJSpzZXBhcmF0b3JHRj0vJSlzdHJldGNoeUdGPS8lKnN5bW1ldHJpY0dGPS8lKGxhcmdlb3BHRj0vJS5tb3ZhYmxlbGltaXRzR0Y9LyUnYWNjZW50R0Y9LyUnbHNwYWNlR1EsMC4yNzc3Nzc4ZW1GJy8lJ3JzcGFjZUdGTC1GIzYrLUY2Ni9RJ21vZHVsZUYnLyUlYm9sZEdGMS9GM1ElYm9sZEYnLyUrZm9udHdlaWdodEdGV0Y7Rj5GQEZCRkRGRkZIL0ZLUSYwLjBlbUYnL0ZORmVuLUkobWZlbmNlZEdGJDYkLUYjNiYtRiw2JVEhRidGL0YyLyUrZm9yZWdyb3VuZEdRKFswLDAsMF1GJy8lKXJlYWRvbmx5R0Y9RjlGOS1JJ21zcGFjZUdGJDYmLyUnaGVpZ2h0R1EmMC4wZXhGJy8lJndpZHRoR1EmMC41ZW1GJy8lJmRlcHRoR0Zpby8lKmxpbmVicmVha0dRMWZpcnN0cHJvY25ld2xpbmVGJy1GNjYtUSQuLi5GJ0Y5RjtGPkZARkJGREZGRkgvRktRLDAuMjIyMjIyMmVtRidGZm4tRmVvNiZGZ29Gam9GXXAvRmBwUTZkZWNyZWFzZWluZGVudG5ld2xpbmVGJy1GNjYvUStlbmR+bW9kdWxlRidGVEZWRlhGO0Y+RkBGQkZERkZGSEZaRmZuRl9vRmJvRjlGOQ==">LV9JLFR5cGVzZXR0aW5nRzYkJSpwcm90ZWN0ZWRHSShfc3lzbGliRzYiSSxtcHJpbnRzbGFzaEdGKDYkNyM+SSpNYXQyVG9vbHNHRihgNidJLXBlcmlvZGljRnVuY0c2JEYmL0knX2xvY2FsR0YmSTBfbjI5MTgwNzczOTE5NjhHRihJK3BlcmlvZFBsb3RHNiRGJi9GM0kwX24yOTE4MDc3MzkxOTI4R0YoSTVyb3V0aEh1cndpdHpNYXRyaWNlc0c2JEYmL0YzSTBfbjI5MTgwNzc5MDkwNTZHRihJNEZvdXJpZXJDb2VmZmljaWVudHNHNiRGJi9GM0kwX24yOTE4MDc3OTA5MDA4R0YoSStGb3VyaWVyUm93RzYkRiYvRjNJMF9uMjkxODA3NzM5MTg4OEdGKEkwX20yOTE4MDc3MzI3MDQwR0YoNiNJM3JvdXRoSHVyd2l0ek1hdHJpeEc2Iy9GM0kwX24yOTE4MDc3OTA4OTYwR0YoNyNGLg==</Equation></Text-field>
+<Output><Text-field style="2D Output" layout="Maple Output"><Equation executable="false" style="2D Output" display="LUklbXJvd0c2Iy9JK21vZHVsZW5hbWVHNiJJLFR5cGVzZXR0aW5nR0koX3N5c2xpYkdGJzYmLUkjbWlHRiQ2JVEqTWF0MlRvb2xzRicvJSdpdGFsaWNHUSV0cnVlRicvJSxtYXRodmFyaWFudEdRJ2l0YWxpY0YnLUkjbW9HRiQ2LVEpJkFzc2lnbjtGJy9GM1Enbm9ybWFsRicvJSZmZW5jZUdRJmZhbHNlRicvJSpzZXBhcmF0b3JHRj0vJSlzdHJldGNoeUdGPS8lKnN5bW1ldHJpY0dGPS8lKGxhcmdlb3BHRj0vJS5tb3ZhYmxlbGltaXRzR0Y9LyUnYWNjZW50R0Y9LyUnbHNwYWNlR1EsMC4yNzc3Nzc4ZW1GJy8lJ3JzcGFjZUdGTC1GIzYrLUY2Ni9RJ21vZHVsZUYnLyUlYm9sZEdGMS9GM1ElYm9sZEYnLyUrZm9udHdlaWdodEdGV0Y7Rj5GQEZCRkRGRkZIL0ZLUSYwLjBlbUYnL0ZORmVuLUkobWZlbmNlZEdGJDYkLUYjNiYtRiw2JVEhRidGL0YyLyUrZm9yZWdyb3VuZEdRKFswLDAsMF1GJy8lKXJlYWRvbmx5R0Y9RjlGOS1JJ21zcGFjZUdGJDYmLyUnaGVpZ2h0R1EmMC4wZXhGJy8lJndpZHRoR1EmMC41ZW1GJy8lJmRlcHRoR0Zpby8lKmxpbmVicmVha0dRMWZpcnN0cHJvY25ld2xpbmVGJy1GNjYtUSQuLi5GJ0Y5RjtGPkZARkJGREZGRkgvRktRLDAuMjIyMjIyMmVtRidGZm4tRmVvNiZGZ29Gam9GXXAvRmBwUTZkZWNyZWFzZWluZGVudG5ld2xpbmVGJy1GNjYvUStlbmR+bW9kdWxlRidGVEZWRlhGO0Y+RkBGQkZERkZGSEZaRmZuRl9vRmJvRjlGOQ==">LV9JLFR5cGVzZXR0aW5nRzYkJSpwcm90ZWN0ZWRHSShfc3lzbGliRzYiSSxtcHJpbnRzbGFzaEdGKDYkNyM+SSpNYXQyVG9vbHNHRihgNilJK3BlcmlvZFBsb3RHNiRGJi9JJ19sb2NhbEdGJkkwX24xODAxMDYwMzUyNjQwR0YoSTVyb3V0aEh1cndpdHpNYXRyaWNlc0c2JEYmL0YzSTBfbjE4MDEwNzY2NzM3MjhHRihJNEZvdXJpZXJDb2VmZmljaWVudHNHNiRGJi9GM0kwX24xODAxMDc2NjczNjgwR0YoSS5Gb3VyaWVyU2VyaWVzRzYkRiYvRjNJMF9uMTgwMTA2MDM1MjU2MEdGKEktcGVyaW9kaWNGdW5jRzYkRiYvRjNJMF9uMTgwMTA2MDM1MjQ4MEdGKEkyY29udmVyZ2VuY2VSYWRpdXNHNiRGJi9GM0kwX24xODAxMDc2NjczNjMyR0YoSStkdHJhbnNmb3JtRzYkRiYvRjNJMF9uMTgwMTA2MDM1MjQwMEdGKEkwX20xODAxMDk1MTU0NzIwR0YoNiNJM3JvdXRoSHVyd2l0ek1hdHJpeEc2Iy9GM0kwX24xODAxMDc2NjczNTg0R0YoNyNGLg==</Equation></Text-field>
 </Output>
 </Group>
 <Group labelreference="L4" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
