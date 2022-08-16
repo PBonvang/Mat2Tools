@@ -135,6 +135,7 @@ routhHurwitzMatrix := proc(coefficients := {list})
 end proc:
 
 routhHurwitzMatrices := proc(A::{matrix, Matrix})
+    description &quot;Creates the matrices from theorem 2.39(ii).&quot;;
     local c, rd, cd, p, i;
     rd, cd := LinearAlgebra[Dimension](A);
 
@@ -159,11 +160,10 @@ routhHurwitzMatrices := proc(A::{matrix, Matrix})
 
 end proc:
 
-FourierCoefficients := proc(f::{procedure}, {T := 2*Pi, odd::{boolean} := false, even::{boolean} := false, integralInterval::{range} := 0..T})
+FourierCoefficients := proc(f::{procedure}, {T := 2*Pi, odd::{boolean} := false, even::{boolean} := false, integralInterval::{range} := 0..T,ref::{boolean} := false})
     local a, b, c, var, w, i;
     var := op(1, eval(f));
     w := 2*Pi/T;
-
     if (numelems([var]) &lt;&gt; 1) then
         return &quot;f can only have one independent variable.&quot;
     end if;
@@ -174,29 +174,41 @@ FourierCoefficients := proc(f::{procedure}, {T := 2*Pi, odd::{boolean} := false,
     end if;
 
     if (even) then
+        if(ref) then
+            print(&quot;Calculated real coefficients using theorem 6.3(i).&quot;);
+        end if;
         a := n -&gt; 4/T * int(f(var)*cos(n*w*var),var=0..T/2);
         b := n -&gt; 0;
 
     elif(odd) then
+        if(ref) then
+            print(&quot;Calculated real coefficients using theorem 6.3(i).&quot;);
+        end if;
         a := n -&gt; 0;
         b := n -&gt; 4/T * int(f(var)*sin(n*w*var),var=0..T/2);
 
     else
+        if(ref) then
+            print(&quot;Calculated real coefficients using definition 6.1.&quot;);
+        end if;
         a := n -&gt; 2/T * int(f(var)*cos(n*w*var),x=integralInterval);
         b := n -&gt; 2/T * int(f(var)*sin(n*w*var),x=integralInterval);
 
     end if;
+        if(ref) then
+            print(&quot;Calculated complex coefficients using lemma 6.20.&quot;);
+        end if;
         c := n -&gt; 1/T * int(f(var)*exp(-I*n*w*var),var=integralInterval);
 
     return a, b, c;
 end proc:
 
-FourierSeries := proc(f::{procedure}, {T := 2*Pi, odd::{boolean} := false, even::{boolean} := false, integralInterval::{range} := 0..T, complex::{boolean} := false})
+FourierSeries := proc(f::{procedure}, {T := 2*Pi, odd::{boolean} := false, even::{boolean} := false, integralInterval::{range} := 0..T, complex::{boolean} := false, ref::{boolean} := false})
     local a, b, c, var, w;
     var := op(1, eval(f));
     w := 2*Pi/T;
 
-    a, b, c := FourierCoefficients(f, T=T,odd=odd,even=even,integralInterval=integralInterval,complex=complex);
+    a, b, c := FourierCoefficients(f, T=T,odd=odd,even=even,integralInterval=integralInterval,complex=complex,ref=ref);
 
     if(complex) then
         return unapply(sum(c(n)*exp(i*n*w*var),n=-infinity..infinity),var);
@@ -271,7 +283,7 @@ end proc;
 
 end module;</Text-field>
 </Input>
-<Output><Text-field style="2D Output" layout="Maple Output"><Equation executable="false" style="2D Output" display="LUklbXJvd0c2Iy9JK21vZHVsZW5hbWVHNiJJLFR5cGVzZXR0aW5nR0koX3N5c2xpYkdGJzYmLUkjbWlHRiQ2JVEqTWF0MlRvb2xzRicvJSdpdGFsaWNHUSV0cnVlRicvJSxtYXRodmFyaWFudEdRJ2l0YWxpY0YnLUkjbW9HRiQ2LVEpJkFzc2lnbjtGJy9GM1Enbm9ybWFsRicvJSZmZW5jZUdRJmZhbHNlRicvJSpzZXBhcmF0b3JHRj0vJSlzdHJldGNoeUdGPS8lKnN5bW1ldHJpY0dGPS8lKGxhcmdlb3BHRj0vJS5tb3ZhYmxlbGltaXRzR0Y9LyUnYWNjZW50R0Y9LyUnbHNwYWNlR1EsMC4yNzc3Nzc4ZW1GJy8lJ3JzcGFjZUdGTC1GIzYrLUY2Ni9RJ21vZHVsZUYnLyUlYm9sZEdGMS9GM1ElYm9sZEYnLyUrZm9udHdlaWdodEdGV0Y7Rj5GQEZCRkRGRkZIL0ZLUSYwLjBlbUYnL0ZORmVuLUkobWZlbmNlZEdGJDYkLUYjNiYtRiw2JVEhRidGL0YyLyUrZm9yZWdyb3VuZEdRKFswLDAsMF1GJy8lKXJlYWRvbmx5R0Y9RjlGOS1JJ21zcGFjZUdGJDYmLyUnaGVpZ2h0R1EmMC4wZXhGJy8lJndpZHRoR1EmMC41ZW1GJy8lJmRlcHRoR0Zpby8lKmxpbmVicmVha0dRMWZpcnN0cHJvY25ld2xpbmVGJy1GNjYtUSQuLi5GJ0Y5RjtGPkZARkJGREZGRkgvRktRLDAuMjIyMjIyMmVtRidGZm4tRmVvNiZGZ29Gam9GXXAvRmBwUTZkZWNyZWFzZWluZGVudG5ld2xpbmVGJy1GNjYvUStlbmR+bW9kdWxlRidGVEZWRlhGO0Y+RkBGQkZERkZGSEZaRmZuRl9vRmJvRjlGOQ==">LV9JLFR5cGVzZXR0aW5nRzYkJSpwcm90ZWN0ZWRHSShfc3lzbGliRzYiSSxtcHJpbnRzbGFzaEdGKDYkNyM+SSpNYXQyVG9vbHNHRihgNihJNXJvdXRoSHVyd2l0ek1hdHJpY2VzRzYkRiYvSSdfbG9jYWxHRiZJMF9uMjEzNTMxNzI4Njk2MEdGKEk0Rm91cmllckNvZWZmaWNpZW50c0c2JEYmL0YzSTBfbjIxMzUzMTcyODY5MTJHRihJLkZvdXJpZXJTZXJpZXNHNiRGJi9GM0kwX24yMTM1MzE2NTU1OTI4R0YoSS1wZXJpb2RpY0Z1bmNHNiRGJi9GM0kwX24yMTM1MzE2NTU1ODg4R0YoSTJjb252ZXJnZW5jZVJhZGl1c0c2JEYmL0YzSTBfbjIxMzUzMTcyOTUwNDBHRihJK2R0cmFuc2Zvcm1HNiRGJi9GM0kwX24yMTM1MzE2NTU1ODQ4R0YoSTBfbTIxMzUzMTczODgyMjRHRig2I0kzcm91dGhIdXJ3aXR6TWF0cml4RzYjL0YzSTBfbjIxMzUzMTcyOTQ5OTJHRig3I0Yu</Equation></Text-field>
+<Output><Text-field style="2D Output" layout="Maple Output"><Equation executable="false" style="2D Output" display="LUklbXJvd0c2Iy9JK21vZHVsZW5hbWVHNiJJLFR5cGVzZXR0aW5nR0koX3N5c2xpYkdGJzYmLUkjbWlHRiQ2JVEqTWF0MlRvb2xzRicvJSdpdGFsaWNHUSV0cnVlRicvJSxtYXRodmFyaWFudEdRJ2l0YWxpY0YnLUkjbW9HRiQ2LVEpJkFzc2lnbjtGJy9GM1Enbm9ybWFsRicvJSZmZW5jZUdRJmZhbHNlRicvJSpzZXBhcmF0b3JHRj0vJSlzdHJldGNoeUdGPS8lKnN5bW1ldHJpY0dGPS8lKGxhcmdlb3BHRj0vJS5tb3ZhYmxlbGltaXRzR0Y9LyUnYWNjZW50R0Y9LyUnbHNwYWNlR1EsMC4yNzc3Nzc4ZW1GJy8lJ3JzcGFjZUdGTC1GIzYrLUY2Ni9RJ21vZHVsZUYnLyUlYm9sZEdGMS9GM1ElYm9sZEYnLyUrZm9udHdlaWdodEdGV0Y7Rj5GQEZCRkRGRkZIL0ZLUSYwLjBlbUYnL0ZORmVuLUkobWZlbmNlZEdGJDYkLUYjNiYtRiw2JVEhRidGL0YyLyUrZm9yZWdyb3VuZEdRKFswLDAsMF1GJy8lKXJlYWRvbmx5R0Y9RjlGOS1JJ21zcGFjZUdGJDYmLyUnaGVpZ2h0R1EmMC4wZXhGJy8lJndpZHRoR1EmMC41ZW1GJy8lJmRlcHRoR0Zpby8lKmxpbmVicmVha0dRMWZpcnN0cHJvY25ld2xpbmVGJy1GNjYtUSQuLi5GJ0Y5RjtGPkZARkJGREZGRkgvRktRLDAuMjIyMjIyMmVtRidGZm4tRmVvNiZGZ29Gam9GXXAvRmBwUTZkZWNyZWFzZWluZGVudG5ld2xpbmVGJy1GNjYvUStlbmR+bW9kdWxlRidGVEZWRlhGO0Y+RkBGQkZERkZGSEZaRmZuRl9vRmJvRjlGOQ==">LV9JLFR5cGVzZXR0aW5nRzYkJSpwcm90ZWN0ZWRHSShfc3lzbGliRzYiSSxtcHJpbnRzbGFzaEdGKDYkNyM+SSpNYXQyVG9vbHNHRihgNihJNXJvdXRoSHVyd2l0ek1hdHJpY2VzRzYkRiYvSSdfbG9jYWxHRiZJMF9uMjEzNTMxNjAwNjc4NEdGKEk0Rm91cmllckNvZWZmaWNpZW50c0c2JEYmL0YzSTBfbjIxMzUzMTYwMDY3MzZHRihJLkZvdXJpZXJTZXJpZXNHNiRGJi9GM0kwX24yMTM1MzE2NTMzODA4R0YoSS1wZXJpb2RpY0Z1bmNHNiRGJi9GM0kwX24yMTM1MzE2NTMzNzY4R0YoSTJjb252ZXJnZW5jZVJhZGl1c0c2JEYmL0YzSTBfbjIxMzUzMTYwMDY2ODhHRihJK2R0cmFuc2Zvcm1HNiRGJi9GM0kwX24yMTM1MzE2NTMzNzI4R0YoSTBfbTIxMzUzMTczNjgxMjhHRig2I0kzcm91dGhIdXJ3aXR6TWF0cml4RzYjL0YzSTBfbjIxMzUzMTYwMDY2NDBHRig3I0Yu</Equation></Text-field>
 </Output>
 </Group>
 <Group labelreference="L4" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
