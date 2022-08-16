@@ -160,7 +160,7 @@ routhHurwitzMatrices := proc(A::{matrix, Matrix})
 
     end if;
     
-    p := LinearAlgebra[Determinant](A-lambda*LinearAlgebra[IdentityMatrix](rd));
+    p := LinearAlgebra[CharacteristicPolynomial](A, lambda);
     c := coeffs(p, lambda);
 
     if(numelems([c]) &lt;= rd) then
