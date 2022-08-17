@@ -101,64 +101,68 @@ export routhHurwitzMatrices, FourierCoefficients, FourierSeries, periodicFunc, c
 local routhHurwitzMatrix, extractODECoeffs;
 
 routhHurwitzMatrix := proc(coefficients := {list})
-    local Dl,s,i,j, d, c;
+    local Dl,s,i,j,k, d, c;
     c := coefficients;
-    d := numelems(c)-1;
-    if(c[1] &lt; 0) then
-        c := -c;
-
-    end if;
-
+    d := numelems(c);
     Dl := [];
     for i from 1 by 1 to d-1 do
         s := [seq(0,1..floor((i-1)/2))];
         if (type(i,even)) then
             s := [op(s),1];
-
         end if;
 
         Dl := [op(Dl),op(s)];
         s := [0,op(s)];
-
-        for j from s[numelems(s)]+1 by 2 to d do
-            if(j+1 &gt; numelems(c)) then
+        
+        k := s[nops(s)]+1;
+        for j from nops(s) by 1 to d-1 do
+            if(k &gt; numelems(c)) then
                 Dl := [op(Dl), 0];
 
             else
-                Dl := [op(Dl), c[j+1]]
+                Dl := [op(Dl), c[k]]
 
             end if;
+            k += 2;
         end do;
     end do;
-
     return Matrix(d-1,d-1,Dl);
 end proc:
+ 
 
-routhHurwitzMatrices := proc(A::{matrix, Matrix})
+routhHurwitzMatrices := proc(A::{Matrix,algebraic})
     description &quot;Creates the matrices from theorem 2.39(ii).&quot;;
-    local c, rd, cd, p, i;
-    rd, cd := LinearAlgebra[Dimension](A);
+    local rd, cd, p, c, l, i, matrix_list;
+    if(type(A,{Matrix,matrix})) then
+        rd, cd := LinearAlgebra[Dimension](A);
+        if(rd &lt;&gt; cd) then
+            print(&quot;Matrix must be square&quot;);
+            return;
 
-    if(rd &lt;&gt; cd) then
-        return &quot;Matrix must be square&quot;;
-
-    elif (rd &lt;= 2) then
-        return &quot;&quot;;
-
+        elif (rd &lt;= 2) then
+            return;
+        end if;
+        p := LinearAlgebra[CharacteristicPolynomial](A, lambda):
+    else 
+        p := A:
     end if;
-    
-    p := LinearAlgebra[CharacteristicPolynomial](A, lambda);
-    c := coeffs(p, lambda);
-
-    if(numelems([c]) &lt;= rd) then
-        return &quot;One or more coefficient is zero&quot;;
+    print(p);
+    c := coeffs(p, lambda, 'l');
+    if(c[1] &lt;&gt; 1) then
+        c := c/c[1]:
     end if;
-    
-    for i from 1 by 1 to rd-2 do 
-        routhHurwitzMatrix([c[i..numelems([c])]]);
+    if(numelems([c]) &lt;&gt; degree(p)+1) then
+        print(&quot;One or more coefficient is zero&quot;);
+        return;
+    end if;
+    matrix_list := [];
+    for i from 0 by 1 to degree(p)-3 do 
+        matrix_list := [op(matrix_list),routhHurwitzMatrix([c[2..numelems([c])-i]])];
     end do;
+    return op(matrix_list);
 
 end proc:
+
 
 FourierCoefficients := proc(f::{procedure}, {T := 2*Pi, odd::{boolean} := false, even::{boolean} := false, range::{range} := 0..T,ref::{boolean} := false})
     local a, b, c, var, w, i;
@@ -330,7 +334,7 @@ end proc;
 
 end module;</Text-field>
 </Input>
-<Output><Text-field style="2D Output" layout="Maple Output"><Equation executable="false" style="2D Output" display="LUklbXJvd0c2Iy9JK21vZHVsZW5hbWVHNiJJLFR5cGVzZXR0aW5nR0koX3N5c2xpYkdGJzYmLUkjbWlHRiQ2JVEqTWF0MlRvb2xzRicvJSdpdGFsaWNHUSV0cnVlRicvJSxtYXRodmFyaWFudEdRJ2l0YWxpY0YnLUkjbW9HRiQ2LVEpJkFzc2lnbjtGJy9GM1Enbm9ybWFsRicvJSZmZW5jZUdRJmZhbHNlRicvJSpzZXBhcmF0b3JHRj0vJSlzdHJldGNoeUdGPS8lKnN5bW1ldHJpY0dGPS8lKGxhcmdlb3BHRj0vJS5tb3ZhYmxlbGltaXRzR0Y9LyUnYWNjZW50R0Y9LyUnbHNwYWNlR1EsMC4yNzc3Nzc4ZW1GJy8lJ3JzcGFjZUdGTC1GIzYrLUY2Ni9RJ21vZHVsZUYnLyUlYm9sZEdGMS9GM1ElYm9sZEYnLyUrZm9udHdlaWdodEdGV0Y7Rj5GQEZCRkRGRkZIL0ZLUSYwLjBlbUYnL0ZORmVuLUkobWZlbmNlZEdGJDYkLUYjNiYtRiw2I1EhRicvJStmb3JlZ3JvdW5kR1EoWzAsMCwwXUYnLyUpcmVhZG9ubHlHRj1GOUY5LUknbXNwYWNlR0YkNiYvJSdoZWlnaHRHUSYwLjBleEYnLyUmd2lkdGhHUSYwLjVlbUYnLyUmZGVwdGhHRmlvLyUqbGluZWJyZWFrR1ExZmlyc3Rwcm9jbmV3bGluZUYnLUY2Ni1RJC4uLkYnRjlGO0Y+RkBGQkZERkZGSC9GS1EsMC4yMjIyMjIyZW1GJ0Zmbi1GZW82JkZnb0Zqb0ZdcC9GYHBRNmRlY3JlYXNlaW5kZW50bmV3bGluZUYnLUY2Ni9RK2VuZH5tb2R1bGVGJ0ZURlZGWEY7Rj5GQEZCRkRGRkZIRlpGZm5GX29GYm9GOUY5">LV9JLFR5cGVzZXR0aW5nRzYkJSpwcm90ZWN0ZWRHSShfc3lzbGliRzYiSSxtcHJpbnRzbGFzaEdGKDYkNyM+SSpNYXQyVG9vbHNHRihgNipJNXJvdXRoSHVyd2l0ek1hdHJpY2VzRzYkRiYvSSdfbG9jYWxHRiZJMl9uMTQwMTcyMTQ3MTgzOTA0R0YoSTRGb3VyaWVyQ29lZmZpY2llbnRzRzYkRiYvRjNJMl9uMTQwMTcyMTQ3MTgzODU2R0YoSS5Gb3VyaWVyU2VyaWVzRzYkRiYvRjNJMl9uMTQwMTcyMTQ3NTQzODQ4R0YoSS1wZXJpb2RpY0Z1bmNHNiRGJi9GM0kyX24xNDAxNzIxNDc1NDM4MDhHRihJMmNvbnZlcmdlbmNlUmFkaXVzRzYkRiYvRjNJMl9uMTQwMTcyMTQ3MTgzODA4R0YoSStkdHJhbnNmb3JtRzYkRiYvRjNJMl9uMTQwMTcyMTQ3NTQzNzY4R0YoSTJkdHJhbnNmZXJGdW5jdGlvbkc2JEYmL0YzSTJfbjE0MDE3MjE0NzE4Mzc2MEdGKEk3bWF0cml4VHJhbnNmZXJGdW5jdGlvbkc2JEYmL0YzSTJfbjE0MDE3MjE0NzE4MzcxMkdGKEkyX20xNDAxNzIxNDgxODg2NzJHRig2JEkzcm91dGhIdXJ3aXR6TWF0cml4RzYjL0YzSTJfbjE0MDE3MjE0NzE4MzY2NEdGKEkxZXh0cmFjdE9ERUNvZWZmc0c2Iy9GM0kyX24xNDAxNzIxNDcxODM2MTZHRig3I0Yu</Equation></Text-field>
+<Output><Text-field style="2D Output" layout="Maple Output"><Equation executable="false" style="2D Output" display="LUklbXJvd0c2Iy9JK21vZHVsZW5hbWVHNiJJLFR5cGVzZXR0aW5nR0koX3N5c2xpYkdGJzYmLUkjbWlHRiQ2JVEqTWF0MlRvb2xzRicvJSdpdGFsaWNHUSV0cnVlRicvJSxtYXRodmFyaWFudEdRJ2l0YWxpY0YnLUkjbW9HRiQ2LVEpJkFzc2lnbjtGJy9GM1Enbm9ybWFsRicvJSZmZW5jZUdRJmZhbHNlRicvJSpzZXBhcmF0b3JHRj0vJSlzdHJldGNoeUdGPS8lKnN5bW1ldHJpY0dGPS8lKGxhcmdlb3BHRj0vJS5tb3ZhYmxlbGltaXRzR0Y9LyUnYWNjZW50R0Y9LyUnbHNwYWNlR1EsMC4yNzc3Nzc4ZW1GJy8lJ3JzcGFjZUdGTC1GIzYrLUY2Ni9RJ21vZHVsZUYnLyUlYm9sZEdGMS9GM1ElYm9sZEYnLyUrZm9udHdlaWdodEdGV0Y7Rj5GQEZCRkRGRkZIL0ZLUSYwLjBlbUYnL0ZORmVuLUkobWZlbmNlZEdGJDYkLUYjNiYtRjY2LVEhRidGOUY7Rj5GQEZCRkRGRkZIRkpGTS8lK2ZvcmVncm91bmRHUShbMCwwLDBdRicvJSlyZWFkb25seUdGPUY5RjktSSdtc3BhY2VHRiQ2Ji8lJ2hlaWdodEdRJjAuMGV4RicvJSZ3aWR0aEdRJjAuNWVtRicvJSZkZXB0aEdGaW8vJSpsaW5lYnJlYWtHUTFmaXJzdHByb2NuZXdsaW5lRictRjY2LVEkLi4uRidGOUY7Rj5GQEZCRkRGRkZIL0ZLUSwwLjIyMjIyMjJlbUYnRmZuLUZlbzYmRmdvRmpvRl1wL0ZgcFE2ZGVjcmVhc2VpbmRlbnRuZXdsaW5lRictRjY2L1ErZW5kfm1vZHVsZUYnRlRGVkZYRjtGPkZARkJGREZGRkhGWkZmbkZfb0Zib0Y5Rjk=">LV9JLFR5cGVzZXR0aW5nRzYkJSpwcm90ZWN0ZWRHSShfc3lzbGliRzYiSSxtcHJpbnRzbGFzaEdGKDYkNyM+SSpNYXQyVG9vbHNHRihgNipJNXJvdXRoSHVyd2l0ek1hdHJpY2VzRzYkRiYvSSdfbG9jYWxHRiZJMF9uMjczNDM1Nzg4MDQzMkdGKEk0Rm91cmllckNvZWZmaWNpZW50c0c2JEYmL0YzSTBfbjI3MzQzNTc4ODAzODRHRihJLkZvdXJpZXJTZXJpZXNHNiRGJi9GM0kwX24yNzM0MzU3NzUzNjQwR0YoSS1wZXJpb2RpY0Z1bmNHNiRGJi9GM0kwX24yNzM0MzU3NzUzNjAwR0YoSTJjb252ZXJnZW5jZVJhZGl1c0c2JEYmL0YzSTBfbjI3MzQzNTc4ODAzMzZHRihJK2R0cmFuc2Zvcm1HNiRGJi9GM0kwX24yNzM0MzU3NzUzNTYwR0YoSTJkdHJhbnNmZXJGdW5jdGlvbkc2JEYmL0YzSTBfbjI3MzQzNTc4ODAyODhHRihJN21hdHJpeFRyYW5zZmVyRnVuY3Rpb25HNiRGJi9GM0kwX24yNzM0MzU3ODgwMjQwR0YoSTBfbTI3MzQzNTUwMDE0NzJHRig2JEkzcm91dGhIdXJ3aXR6TWF0cml4RzYjL0YzSTBfbjI3MzQzNTc4ODAxOTJHRihJMWV4dHJhY3RPREVDb2VmZnNHNiMvRjNJMF9uMjczNDM1Nzg4MDE0NEdGKDcjRi4=</Equation></Text-field>
 </Output>
 </Group>
 <Group labelreference="L4" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
