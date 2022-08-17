@@ -96,9 +96,9 @@
 <Input><Text-field prompt="&gt; " style="Maple Input" layout="Normal">Mat2Tools := module()
 description &quot;Procedures and guides associated with the Advanced Engineering Mathematics 2 (DTU 01037)&quot;;
 option package;
-export routhHurwitzMatrices, FourierCoefficients, FourierSeries, periodicFunc, convergenceRadius, dtransform;
+export routhHurwitzMatrices, FourierCoefficients, FourierSeries, periodicFunc, convergenceRadius, dtransform, dtransferFunction;
 
-local routhHurwitzMatrix;
+local routhHurwitzMatrix, extractODECoeffs;
 
 routhHurwitzMatrix := proc(coefficients := {list})
     local Dl,s,i,j, d, c;
@@ -240,7 +240,7 @@ convergenceRadius := proc(a::{procedure})
   solve(
     limit(abs(a(n+1)/a(n)),n=infinity) &lt; 1
   );
-end proc;
+end proc:
 
 dtransform := proc(eq::equation, y, t)
     description &quot;Calculates the matrix A and the vectors b and c for the 1. order system of differential equations from a nth order differential equation.&quot;;
@@ -279,11 +279,59 @@ dtransform := proc(eq::equation, y, t)
     b := &lt;seq(0,i=1..n-1),1/c[1]&gt;;
     d := &lt;1,seq(0,i=1..n-1)&gt;;
     return A, b, d;
-end proc;
+end proc:
+
+extractODECoeffs := proc(expr::algebraic, y, t)
+    local n, c, j, i, test_eq, coeff_row;
+    n := PDEtools[difforder](expr):
+    c := PDEtools[dcoeffs](expr, y(t)):
+
+
+    coeff_row := []:
+    test_eq := expr:
+
+    j := 1:
+    for i from n by -1 to 1 do
+        if(has(test_eq,diff(y(t),t$i))) then
+            coeff_row := [op(coeff_row),c[j]]:
+            test_eq := test_eq - c[j]*diff(y(t),t$i):
+            j += 1:
+        else
+            coeff_row := [op(coeff_row),0]:
+
+        end if;
+    end do;
+    if(has(test_eq,y(t))) then
+        coeff_row := [op(coeff_row),c[j]]:
+    end if;
+
+    return(coeff_row);
+end proc:
+
+dtransferFunction := proc(eq::equation)
+local eq_str, y_coeffs, u_coeffs, i, P,B;
+eq_str := convert(eq, string);
+
+if (not (Has(eq_str, &quot;y(t)&quot;) and Has(eq_str,&quot;u(t)&quot;))) then
+print(&quot;Expects equation to be dependent on y(t) on left side and u(t) on right side&quot;);
+return;
+end if;
+
+y_coeffs := extractODECoeffs(lhs(eq),y,t);
+u_coeffs := extractODECoeffs(rhs(eq),u,t);
+
+P := add(
+seq(s^(i-1)*y_coeffs[i],i=1..nops(y_coeffs)));
+
+B := add(
+seq(s^(i-1)*u_coeffs[i],i=1..nops(u_coeffs)));
+
+return unapply(B/P,s);
+end proc:
 
 end module;</Text-field>
 </Input>
-<Output><Text-field style="2D Output" layout="Maple Output"><Equation executable="false" style="2D Output" display="LUklbXJvd0c2Iy9JK21vZHVsZW5hbWVHNiJJLFR5cGVzZXR0aW5nR0koX3N5c2xpYkdGJzYmLUkjbWlHRiQ2JVEqTWF0MlRvb2xzRicvJSdpdGFsaWNHUSV0cnVlRicvJSxtYXRodmFyaWFudEdRJ2l0YWxpY0YnLUkjbW9HRiQ2LVEpJkFzc2lnbjtGJy9GM1Enbm9ybWFsRicvJSZmZW5jZUdRJmZhbHNlRicvJSpzZXBhcmF0b3JHRj0vJSlzdHJldGNoeUdGPS8lKnN5bW1ldHJpY0dGPS8lKGxhcmdlb3BHRj0vJS5tb3ZhYmxlbGltaXRzR0Y9LyUnYWNjZW50R0Y9LyUnbHNwYWNlR1EsMC4yNzc3Nzc4ZW1GJy8lJ3JzcGFjZUdGTC1GIzYrLUY2Ni9RJ21vZHVsZUYnLyUlYm9sZEdGMS9GM1ElYm9sZEYnLyUrZm9udHdlaWdodEdGV0Y7Rj5GQEZCRkRGRkZIL0ZLUSYwLjBlbUYnL0ZORmVuLUkobWZlbmNlZEdGJDYkLUYjNiYtRiw2JVEhRidGL0YyLyUrZm9yZWdyb3VuZEdRKFswLDAsMF1GJy8lKXJlYWRvbmx5R0Y9RjlGOS1JJ21zcGFjZUdGJDYmLyUnaGVpZ2h0R1EmMC4wZXhGJy8lJndpZHRoR1EmMC41ZW1GJy8lJmRlcHRoR0Zpby8lKmxpbmVicmVha0dRMWZpcnN0cHJvY25ld2xpbmVGJy1GNjYtUSQuLi5GJ0Y5RjtGPkZARkJGREZGRkgvRktRLDAuMjIyMjIyMmVtRidGZm4tRmVvNiZGZ29Gam9GXXAvRmBwUTZkZWNyZWFzZWluZGVudG5ld2xpbmVGJy1GNjYvUStlbmR+bW9kdWxlRidGVEZWRlhGO0Y+RkBGQkZERkZGSEZaRmZuRl9vRmJvRjlGOQ==">LV9JLFR5cGVzZXR0aW5nRzYkJSpwcm90ZWN0ZWRHSShfc3lzbGliRzYiSSxtcHJpbnRzbGFzaEdGKDYkNyM+SSpNYXQyVG9vbHNHRihgNihJNXJvdXRoSHVyd2l0ek1hdHJpY2VzRzYkRiYvSSdfbG9jYWxHRiZJMF9uMTY0MDM5ODY4MzIzMkdGKEk0Rm91cmllckNvZWZmaWNpZW50c0c2JEYmL0YzSTBfbjE2NDAzOTg2ODMxODRHRihJLkZvdXJpZXJTZXJpZXNHNiRGJi9GM0kwX24xNjQwMzk4MDk1NTc2R0YoSS1wZXJpb2RpY0Z1bmNHNiRGJi9GM0kwX24xNjQwMzk4MDk1NTM2R0YoSTJjb252ZXJnZW5jZVJhZGl1c0c2JEYmL0YzSTBfbjE2NDAzOTg2ODMxMzZHRihJK2R0cmFuc2Zvcm1HNiRGJi9GM0kwX24xNjQwMzk4MDk1NDk2R0YoSTBfbTE2NDAzOTgwMjk2MzJHRig2I0kzcm91dGhIdXJ3aXR6TWF0cml4RzYjL0YzSTBfbjE2NDAzOTg2ODMwODhHRig3I0Yu</Equation></Text-field>
+<Output><Text-field style="2D Output" layout="Maple Output"><Equation executable="false" style="2D Output" display="LUklbXJvd0c2Iy9JK21vZHVsZW5hbWVHNiJJLFR5cGVzZXR0aW5nR0koX3N5c2xpYkdGJzYmLUkjbWlHRiQ2JVEqTWF0MlRvb2xzRicvJSdpdGFsaWNHUSV0cnVlRicvJSxtYXRodmFyaWFudEdRJ2l0YWxpY0YnLUkjbW9HRiQ2LVEpJkFzc2lnbjtGJy9GM1Enbm9ybWFsRicvJSZmZW5jZUdRJmZhbHNlRicvJSpzZXBhcmF0b3JHRj0vJSlzdHJldGNoeUdGPS8lKnN5bW1ldHJpY0dGPS8lKGxhcmdlb3BHRj0vJS5tb3ZhYmxlbGltaXRzR0Y9LyUnYWNjZW50R0Y9LyUnbHNwYWNlR1EsMC4yNzc3Nzc4ZW1GJy8lJ3JzcGFjZUdGTC1GIzYrLUY2Ni9RJ21vZHVsZUYnLyUlYm9sZEdGMS9GM1ElYm9sZEYnLyUrZm9udHdlaWdodEdGV0Y7Rj5GQEZCRkRGRkZIL0ZLUSYwLjBlbUYnL0ZORmVuLUkobWZlbmNlZEdGJDYkLUYjNiYtRiw2I1EhRicvJStmb3JlZ3JvdW5kR1EoWzAsMCwwXUYnLyUpcmVhZG9ubHlHRj1GOUY5LUknbXNwYWNlR0YkNiYvJSdoZWlnaHRHUSYwLjBleEYnLyUmd2lkdGhHUSYwLjVlbUYnLyUmZGVwdGhHRmlvLyUqbGluZWJyZWFrR1ExZmlyc3Rwcm9jbmV3bGluZUYnLUY2Ni1RJC4uLkYnRjlGO0Y+RkBGQkZERkZGSC9GS1EsMC4yMjIyMjIyZW1GJ0Zmbi1GZW82JkZnb0Zqb0ZdcC9GYHBRNmRlY3JlYXNlaW5kZW50bmV3bGluZUYnLUY2Ni9RK2VuZH5tb2R1bGVGJ0ZURlZGWEY7Rj5GQEZCRkRGRkZIRlpGZm5GX29GYm9GOUY5">LV9JLFR5cGVzZXR0aW5nRzYkJSpwcm90ZWN0ZWRHSShfc3lzbGliRzYiSSxtcHJpbnRzbGFzaEdGKDYkNyM+SSpNYXQyVG9vbHNHRihgNilJNXJvdXRoSHVyd2l0ek1hdHJpY2VzRzYkRiYvSSdfbG9jYWxHRiZJMl9uMTQwMTcyMjczNTU4MTc2R0YoSTRGb3VyaWVyQ29lZmZpY2llbnRzRzYkRiYvRjNJMl9uMTQwMTcyMjczNTU4MTI4R0YoSS5Gb3VyaWVyU2VyaWVzRzYkRiYvRjNJMl9uMTQwMTcyMjc0NDg4NjE2R0YoSS1wZXJpb2RpY0Z1bmNHNiRGJi9GM0kyX24xNDAxNzIyNzQ0ODg1NzZHRihJMmNvbnZlcmdlbmNlUmFkaXVzRzYkRiYvRjNJMl9uMTQwMTcyMjczNTU4MDgwR0YoSStkdHJhbnNmb3JtRzYkRiYvRjNJMl9uMTQwMTcyMjc0NDg4NTM2R0YoSTJkdHJhbnNmZXJGdW5jdGlvbkc2JEYmL0YzSTJfbjE0MDE3MjI3MzU1ODAzMkdGKEkyX20xNDAxNzIyNzQwMzcyMTZHRig2JEkzcm91dGhIdXJ3aXR6TWF0cml4RzYjL0YzSTJfbjE0MDE3MjI3MzU1Nzk4NEdGKEkxZXh0cmFjdE9ERUNvZWZmc0c2Iy9GM0kyX24xNDAxNzIyNzM1NTc5MzZHRig3I0Yu</Equation></Text-field>
 </Output>
 </Group>
 <Group labelreference="L4" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
