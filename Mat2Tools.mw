@@ -299,29 +299,28 @@ extractODECoeffs := proc(expr::algebraic, y, t)
 end proc:
 
 dtransferFunction := proc(eq::equation)
-local eq_str, y_coeffs, u_coeffs, i, P,B;
-eq_str := convert(eq, string);
+    local eq_str, y_coeffs, u_coeffs, i, P,B;
 
-if (not (Has(eq_str, &quot;y(t)&quot;) and Has(eq_str,&quot;u(t)&quot;))) then
-print(&quot;Expects equation to be dependent on y(t) on left side and u(t) on right side&quot;);
-return;
-end if;
+    if (not (has(lhs(eq), y(t)) and has(rhs(eq),u(t)))) then
+        print(&quot;Expects equation to be dependent on y(t) on left side and u(t) on right side&quot;);
+        return;
+    end if;
 
-y_coeffs := extractODECoeffs(lhs(eq),y,t);
-u_coeffs := extractODECoeffs(rhs(eq),u,t);
+    y_coeffs := ListTools[Reverse](extractODECoeffs(lhs(eq),y,t));
+    u_coeffs := ListTools[Reverse](extractODECoeffs(rhs(eq),u,t));
 
-P := add(
-seq(s^(i-1)*y_coeffs[i],i=1..nops(y_coeffs)));
+    P := add(
+        seq(s^(i-1)*y_coeffs[i],i=1..nops(y_coeffs)));
 
-B := add(
-seq(s^(i-1)*u_coeffs[i],i=1..nops(u_coeffs)));
+    B := add(
+        seq(s^(i-1)*u_coeffs[i],i=1..nops(u_coeffs)));
 
-return unapply(B/P,s);
+    return unapply(B/P,s);
 end proc:
 
 end module;</Text-field>
 </Input>
-<Output><Text-field style="2D Output" layout="Maple Output"><Equation executable="false" style="2D Output" display="LUklbXJvd0c2Iy9JK21vZHVsZW5hbWVHNiJJLFR5cGVzZXR0aW5nR0koX3N5c2xpYkdGJzYmLUkjbWlHRiQ2JVEqTWF0MlRvb2xzRicvJSdpdGFsaWNHUSV0cnVlRicvJSxtYXRodmFyaWFudEdRJ2l0YWxpY0YnLUkjbW9HRiQ2LVEpJkFzc2lnbjtGJy9GM1Enbm9ybWFsRicvJSZmZW5jZUdRJmZhbHNlRicvJSpzZXBhcmF0b3JHRj0vJSlzdHJldGNoeUdGPS8lKnN5bW1ldHJpY0dGPS8lKGxhcmdlb3BHRj0vJS5tb3ZhYmxlbGltaXRzR0Y9LyUnYWNjZW50R0Y9LyUnbHNwYWNlR1EsMC4yNzc3Nzc4ZW1GJy8lJ3JzcGFjZUdGTC1GIzYrLUY2Ni9RJ21vZHVsZUYnLyUlYm9sZEdGMS9GM1ElYm9sZEYnLyUrZm9udHdlaWdodEdGV0Y7Rj5GQEZCRkRGRkZIL0ZLUSYwLjBlbUYnL0ZORmVuLUkobWZlbmNlZEdGJDYkLUYjNiYtRiw2I1EhRicvJStmb3JlZ3JvdW5kR1EoWzAsMCwwXUYnLyUpcmVhZG9ubHlHRj1GOUY5LUknbXNwYWNlR0YkNiYvJSdoZWlnaHRHUSYwLjBleEYnLyUmd2lkdGhHUSYwLjVlbUYnLyUmZGVwdGhHRmlvLyUqbGluZWJyZWFrR1ExZmlyc3Rwcm9jbmV3bGluZUYnLUY2Ni1RJC4uLkYnRjlGO0Y+RkBGQkZERkZGSC9GS1EsMC4yMjIyMjIyZW1GJ0Zmbi1GZW82JkZnb0Zqb0ZdcC9GYHBRNmRlY3JlYXNlaW5kZW50bmV3bGluZUYnLUY2Ni9RK2VuZH5tb2R1bGVGJ0ZURlZGWEY7Rj5GQEZCRkRGRkZIRlpGZm5GX29GYm9GOUY5">LV9JLFR5cGVzZXR0aW5nRzYkJSpwcm90ZWN0ZWRHSShfc3lzbGliRzYiSSxtcHJpbnRzbGFzaEdGKDYkNyM+SSpNYXQyVG9vbHNHRihgNilJNXJvdXRoSHVyd2l0ek1hdHJpY2VzRzYkRiYvSSdfbG9jYWxHRiZJMl9uMTQwMTcyMTUxNjQzNTIwR0YoSTRGb3VyaWVyQ29lZmZpY2llbnRzRzYkRiYvRjNJMl9uMTQwMTcyMTUxNjQzNDcyR0YoSS5Gb3VyaWVyU2VyaWVzRzYkRiYvRjNJMl9uMTQwMTcyMTUyMjExMzI4R0YoSS1wZXJpb2RpY0Z1bmNHNiRGJi9GM0kyX24xNDAxNzIxNTIyMTEyODhHRihJMmNvbnZlcmdlbmNlUmFkaXVzRzYkRiYvRjNJMl9uMTQwMTcyMTUxNjQzNDI0R0YoSStkdHJhbnNmb3JtRzYkRiYvRjNJMl9uMTQwMTcyMTUyMjExMjQ4R0YoSTJkdHJhbnNmZXJGdW5jdGlvbkc2JEYmL0YzSTJfbjE0MDE3MjE1MTY0MzM3NkdGKEkyX20xNDAxNzIxNTE1NjI1NjBHRig2JEkzcm91dGhIdXJ3aXR6TWF0cml4RzYjL0YzSTJfbjE0MDE3MjE1MTY0MzMyOEdGKEkxZXh0cmFjdE9ERUNvZWZmc0c2Iy9GM0kyX24xNDAxNzIxNTE2NDMyODBHRig3I0Yu</Equation></Text-field>
+<Output><Text-field style="2D Output" layout="Maple Output"><Equation executable="false" style="2D Output" display="LUklbXJvd0c2Iy9JK21vZHVsZW5hbWVHNiJJLFR5cGVzZXR0aW5nR0koX3N5c2xpYkdGJzYmLUkjbWlHRiQ2JVEqTWF0MlRvb2xzRicvJSdpdGFsaWNHUSV0cnVlRicvJSxtYXRodmFyaWFudEdRJ2l0YWxpY0YnLUkjbW9HRiQ2LVEpJkFzc2lnbjtGJy9GM1Enbm9ybWFsRicvJSZmZW5jZUdRJmZhbHNlRicvJSpzZXBhcmF0b3JHRj0vJSlzdHJldGNoeUdGPS8lKnN5bW1ldHJpY0dGPS8lKGxhcmdlb3BHRj0vJS5tb3ZhYmxlbGltaXRzR0Y9LyUnYWNjZW50R0Y9LyUnbHNwYWNlR1EsMC4yNzc3Nzc4ZW1GJy8lJ3JzcGFjZUdGTC1GIzYrLUY2Ni9RJ21vZHVsZUYnLyUlYm9sZEdGMS9GM1ElYm9sZEYnLyUrZm9udHdlaWdodEdGV0Y7Rj5GQEZCRkRGRkZIL0ZLUSYwLjBlbUYnL0ZORmVuLUkobWZlbmNlZEdGJDYkLUYjNiYtRiw2I1EhRicvJStmb3JlZ3JvdW5kR1EoWzAsMCwwXUYnLyUpcmVhZG9ubHlHRj1GOUY5LUknbXNwYWNlR0YkNiYvJSdoZWlnaHRHUSYwLjBleEYnLyUmd2lkdGhHUSYwLjVlbUYnLyUmZGVwdGhHRmlvLyUqbGluZWJyZWFrR1ExZmlyc3Rwcm9jbmV3bGluZUYnLUY2Ni1RJC4uLkYnRjlGO0Y+RkBGQkZERkZGSC9GS1EsMC4yMjIyMjIyZW1GJ0Zmbi1GZW82JkZnb0Zqb0ZdcC9GYHBRNmRlY3JlYXNlaW5kZW50bmV3bGluZUYnLUY2Ni9RK2VuZH5tb2R1bGVGJ0ZURlZGWEY7Rj5GQEZCRkRGRkZIRlpGZm5GX29GYm9GOUY5">LV9JLFR5cGVzZXR0aW5nRzYkJSpwcm90ZWN0ZWRHSShfc3lzbGliRzYiSSxtcHJpbnRzbGFzaEdGKDYkNyM+SSpNYXQyVG9vbHNHRihgNilJNXJvdXRoSHVyd2l0ek1hdHJpY2VzRzYkRiYvSSdfbG9jYWxHRiZJMl9uMTQwMTcyMTUwMzcyNDY0R0YoSTRGb3VyaWVyQ29lZmZpY2llbnRzRzYkRiYvRjNJMl9uMTQwMTcyMTUwMzcyNDE2R0YoSS5Gb3VyaWVyU2VyaWVzRzYkRiYvRjNJMl9uMTQwMTcyMTUwNzEyNDcyR0YoSS1wZXJpb2RpY0Z1bmNHNiRGJi9GM0kyX24xNDAxNzIxNTA3MTI0MzJHRihJMmNvbnZlcmdlbmNlUmFkaXVzRzYkRiYvRjNJMl9uMTQwMTcyMTUwMzcyMzY4R0YoSStkdHJhbnNmb3JtRzYkRiYvRjNJMl9uMTQwMTcyMTUwNzEyMzkyR0YoSTJkdHJhbnNmZXJGdW5jdGlvbkc2JEYmL0YzSTJfbjE0MDE3MjE1MDM3MjMyMEdGKEkyX20xNDAxNzIxNTA1MDM3NDRHRig2JEkzcm91dGhIdXJ3aXR6TWF0cml4RzYjL0YzSTJfbjE0MDE3MjE1MDM3MjI3MkdGKEkxZXh0cmFjdE9ERUNvZWZmc0c2Iy9GM0kyX24xNDAxNzIxNTAzNzIyMjRHRig3I0Yu</Equation></Text-field>
 </Output>
 </Group>
 <Group labelreference="L4" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
