@@ -242,13 +242,17 @@ convergenceRadius := proc(a::{procedure})
   );
 end proc:
 
-dtransform := proc(eq::equation, y, t)
+dtransform := proc(eq::equation)
     description &quot;Calculates the matrix A and the vectors b and c for the 1. order system of differential equations from a nth order differential equation.&quot;;
-    local leq, n, c, j, i, test_eq, coeff_row, A, b, d;
+    local leq, n, c, i, coeff_row, A, b, d;
     leq := lhs(eq):
 
+    if (not has(leq, y(t))) then
+        print(&quot;Expects the left side of the equation to be dependent on y(t)&quot;);
+        return;
+    end if;
+
     n := PDEtools[difforder](leq):
-    c := PDEtools[dcoeffs](leq, y(t)):
 
     if (n &lt;= 1) then
         print(&quot;The order of the differential equation must be greater than 1&quot;);
@@ -256,25 +260,11 @@ dtransform := proc(eq::equation, y, t)
     end if;
 
 
-    coeff_row := []:
-    test_eq := leq - c[1]*diff(y(t),t$n):
-
-    j := 2:
-
-    for i from n-1 by -1 to 1 do
-        if(has(test_eq,diff(y(t),t$i))) then
-            coeff_row := [op(coeff_row),-c[j]/c[1]]:
-            test_eq := test_eq - c[j]*diff(y(t),t$i):
-            j += 1:
-        else
-            coeff_row := [op(coeff_row),0]:
-
-        end if;
-    end do;
-    if(has(test_eq,y(t))) then
-        coeff_row := [op(coeff_row),-c[j]/c[1]]:
-    end if;
-
+    coeff_row := extractODECoeffs(leq,y,t):
+    c[1] := coeff_row[1];
+    coeff_row := -coeff_row[2..]/c[1];
+    
+    
     A := &lt;&lt;&lt;seq(0,i=1..n-1)&gt;|LinearAlgebra[IdentityMatrix](n-1)&gt;;Matrix(coeff_row)&gt;:
     b := &lt;seq(0,i=1..n-1),1/c[1]&gt;;
     d := &lt;1,seq(0,i=1..n-1)&gt;;
@@ -331,7 +321,7 @@ end proc:
 
 end module;</Text-field>
 </Input>
-<Output><Text-field style="2D Output" layout="Maple Output"><Equation executable="false" style="2D Output" display="LUklbXJvd0c2Iy9JK21vZHVsZW5hbWVHNiJJLFR5cGVzZXR0aW5nR0koX3N5c2xpYkdGJzYmLUkjbWlHRiQ2JVEqTWF0MlRvb2xzRicvJSdpdGFsaWNHUSV0cnVlRicvJSxtYXRodmFyaWFudEdRJ2l0YWxpY0YnLUkjbW9HRiQ2LVEpJkFzc2lnbjtGJy9GM1Enbm9ybWFsRicvJSZmZW5jZUdRJmZhbHNlRicvJSpzZXBhcmF0b3JHRj0vJSlzdHJldGNoeUdGPS8lKnN5bW1ldHJpY0dGPS8lKGxhcmdlb3BHRj0vJS5tb3ZhYmxlbGltaXRzR0Y9LyUnYWNjZW50R0Y9LyUnbHNwYWNlR1EsMC4yNzc3Nzc4ZW1GJy8lJ3JzcGFjZUdGTC1GIzYrLUY2Ni9RJ21vZHVsZUYnLyUlYm9sZEdGMS9GM1ElYm9sZEYnLyUrZm9udHdlaWdodEdGV0Y7Rj5GQEZCRkRGRkZIL0ZLUSYwLjBlbUYnL0ZORmVuLUkobWZlbmNlZEdGJDYkLUYjNiYtRiw2I1EhRicvJStmb3JlZ3JvdW5kR1EoWzAsMCwwXUYnLyUpcmVhZG9ubHlHRj1GOUY5LUknbXNwYWNlR0YkNiYvJSdoZWlnaHRHUSYwLjBleEYnLyUmd2lkdGhHUSYwLjVlbUYnLyUmZGVwdGhHRmlvLyUqbGluZWJyZWFrR1ExZmlyc3Rwcm9jbmV3bGluZUYnLUY2Ni1RJC4uLkYnRjlGO0Y+RkBGQkZERkZGSC9GS1EsMC4yMjIyMjIyZW1GJ0Zmbi1GZW82JkZnb0Zqb0ZdcC9GYHBRNmRlY3JlYXNlaW5kZW50bmV3bGluZUYnLUY2Ni9RK2VuZH5tb2R1bGVGJ0ZURlZGWEY7Rj5GQEZCRkRGRkZIRlpGZm5GX29GYm9GOUY5">LV9JLFR5cGVzZXR0aW5nRzYkJSpwcm90ZWN0ZWRHSShfc3lzbGliRzYiSSxtcHJpbnRzbGFzaEdGKDYkNyM+SSpNYXQyVG9vbHNHRihgNilJNXJvdXRoSHVyd2l0ek1hdHJpY2VzRzYkRiYvSSdfbG9jYWxHRiZJMl9uMTQwMTcyMjczNTU4MTc2R0YoSTRGb3VyaWVyQ29lZmZpY2llbnRzRzYkRiYvRjNJMl9uMTQwMTcyMjczNTU4MTI4R0YoSS5Gb3VyaWVyU2VyaWVzRzYkRiYvRjNJMl9uMTQwMTcyMjc0NDg4NjE2R0YoSS1wZXJpb2RpY0Z1bmNHNiRGJi9GM0kyX24xNDAxNzIyNzQ0ODg1NzZHRihJMmNvbnZlcmdlbmNlUmFkaXVzRzYkRiYvRjNJMl9uMTQwMTcyMjczNTU4MDgwR0YoSStkdHJhbnNmb3JtRzYkRiYvRjNJMl9uMTQwMTcyMjc0NDg4NTM2R0YoSTJkdHJhbnNmZXJGdW5jdGlvbkc2JEYmL0YzSTJfbjE0MDE3MjI3MzU1ODAzMkdGKEkyX20xNDAxNzIyNzQwMzcyMTZHRig2JEkzcm91dGhIdXJ3aXR6TWF0cml4RzYjL0YzSTJfbjE0MDE3MjI3MzU1Nzk4NEdGKEkxZXh0cmFjdE9ERUNvZWZmc0c2Iy9GM0kyX24xNDAxNzIyNzM1NTc5MzZHRig3I0Yu</Equation></Text-field>
+<Output><Text-field style="2D Output" layout="Maple Output"><Equation executable="false" style="2D Output" display="LUklbXJvd0c2Iy9JK21vZHVsZW5hbWVHNiJJLFR5cGVzZXR0aW5nR0koX3N5c2xpYkdGJzYmLUkjbWlHRiQ2JVEqTWF0MlRvb2xzRicvJSdpdGFsaWNHUSV0cnVlRicvJSxtYXRodmFyaWFudEdRJ2l0YWxpY0YnLUkjbW9HRiQ2LVEpJkFzc2lnbjtGJy9GM1Enbm9ybWFsRicvJSZmZW5jZUdRJmZhbHNlRicvJSpzZXBhcmF0b3JHRj0vJSlzdHJldGNoeUdGPS8lKnN5bW1ldHJpY0dGPS8lKGxhcmdlb3BHRj0vJS5tb3ZhYmxlbGltaXRzR0Y9LyUnYWNjZW50R0Y9LyUnbHNwYWNlR1EsMC4yNzc3Nzc4ZW1GJy8lJ3JzcGFjZUdGTC1GIzYrLUY2Ni9RJ21vZHVsZUYnLyUlYm9sZEdGMS9GM1ElYm9sZEYnLyUrZm9udHdlaWdodEdGV0Y7Rj5GQEZCRkRGRkZIL0ZLUSYwLjBlbUYnL0ZORmVuLUkobWZlbmNlZEdGJDYkLUYjNiYtRiw2I1EhRicvJStmb3JlZ3JvdW5kR1EoWzAsMCwwXUYnLyUpcmVhZG9ubHlHRj1GOUY5LUknbXNwYWNlR0YkNiYvJSdoZWlnaHRHUSYwLjBleEYnLyUmd2lkdGhHUSYwLjVlbUYnLyUmZGVwdGhHRmlvLyUqbGluZWJyZWFrR1ExZmlyc3Rwcm9jbmV3bGluZUYnLUY2Ni1RJC4uLkYnRjlGO0Y+RkBGQkZERkZGSC9GS1EsMC4yMjIyMjIyZW1GJ0Zmbi1GZW82JkZnb0Zqb0ZdcC9GYHBRNmRlY3JlYXNlaW5kZW50bmV3bGluZUYnLUY2Ni9RK2VuZH5tb2R1bGVGJ0ZURlZGWEY7Rj5GQEZCRkRGRkZIRlpGZm5GX29GYm9GOUY5">LV9JLFR5cGVzZXR0aW5nRzYkJSpwcm90ZWN0ZWRHSShfc3lzbGliRzYiSSxtcHJpbnRzbGFzaEdGKDYkNyM+SSpNYXQyVG9vbHNHRihgNilJNXJvdXRoSHVyd2l0ek1hdHJpY2VzRzYkRiYvSSdfbG9jYWxHRiZJMl9uMTQwMTcyMTUxNjQzNTIwR0YoSTRGb3VyaWVyQ29lZmZpY2llbnRzRzYkRiYvRjNJMl9uMTQwMTcyMTUxNjQzNDcyR0YoSS5Gb3VyaWVyU2VyaWVzRzYkRiYvRjNJMl9uMTQwMTcyMTUyMjExMzI4R0YoSS1wZXJpb2RpY0Z1bmNHNiRGJi9GM0kyX24xNDAxNzIxNTIyMTEyODhHRihJMmNvbnZlcmdlbmNlUmFkaXVzRzYkRiYvRjNJMl9uMTQwMTcyMTUxNjQzNDI0R0YoSStkdHJhbnNmb3JtRzYkRiYvRjNJMl9uMTQwMTcyMTUyMjExMjQ4R0YoSTJkdHJhbnNmZXJGdW5jdGlvbkc2JEYmL0YzSTJfbjE0MDE3MjE1MTY0MzM3NkdGKEkyX20xNDAxNzIxNTE1NjI1NjBHRig2JEkzcm91dGhIdXJ3aXR6TWF0cml4RzYjL0YzSTJfbjE0MDE3MjE1MTY0MzMyOEdGKEkxZXh0cmFjdE9ERUNvZWZmc0c2Iy9GM0kyX24xNDAxNzIxNTE2NDMyODBHRig3I0Yu</Equation></Text-field>
 </Output>
 </Group>
 <Group labelreference="L4" drawlabel="true" applyint="true" applyrational="true" applyexponent="false">
